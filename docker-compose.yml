@@ -1,0 +1,14 @@
+services:
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: ./Chat.Api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_HTTP_PORTS=8080
+      - AppOptions__OpenAIApiKey=${OPEN_AI_API_KEY}
+      - AppOptions__MaxPreviousConversations=${MAX_PREVIOUS_CONVERSATIONS}
+    volumes:
+      - ./SystemMessages:/app/SystemMessages
