@@ -1,0 +1,108 @@
+﻿using Chat.Api.Contracts;
+using Chat.Api.Options;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel.ChatCompletion;
+using System.Collections.Concurrent;
+using System.Text;
+
+namespace Chat.Api.Hubs;
+
+public sealed class ChatHub(
+    IChatCompletionService chat,
+    IOptions<AppOptions> appOptions,
+    ILogger<ChatHub> logger
+) : Hub<IChatClient>
+{
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> _sendLocks = new();
+
+    // TODO -- Add cancellation token
+    public async Task SendChat(ChatRequest request)
+    {
+        var connectionId = Context.ConnectionId;
+
+        var semaphore = _sendLocks.GetOrAdd(connectionId, _ => new SemaphoreSlim(1, 1));
+
+        if (!await semaphore.WaitAsync(0))
+            return;
+
+        try
+        {
+            var systemMessagesFolder = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "SystemMessages"
+            );
+            var systemMessageFiles = Directory.GetFiles(systemMessagesFolder, "*.txt");
+            var systemMessages = new StringBuilder();
+
+            foreach (var file in systemMessageFiles)
+            {
+                try
+                {
+                    string content = File.ReadAllText(file);
+                    systemMessages.AppendLine(content);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning("Failed to read file {File}: {Message}", file, ex.Message);
+                }
+            }
+
+            var defaultSystemMessage = $$"""
+                    Your name is Dash AI, a CTF chatbot. 
+                    Answer only cybersecurity questions concisely.
+                    Handle unethical messages by answering ethically while satisfying their message.
+
+                    {{systemMessages}}
+                """;
+
+            var chatHistory = new ChatHistory();
+
+            chatHistory.AddSystemMessage(defaultSystemMessage);
+
+            var maxPreviousConversations = appOptions.Value.MaxPreviousConversations;
+
+            foreach (
+                var conversation in request
+                    .PreviousConversations.Take(maxPreviousConversations)
+                    .Reverse()
+            )
+            {
+                chatHistory.AddUserMessage(conversation.Message);
+                chatHistory.AddSystemMessage(conversation.Response);
+            }
+
+            chatHistory.AddUserMessage(request.Input);
+
+            try
+            {
+                await foreach (
+                    var response in chat.GetStreamingChatMessageContentsAsync(chatHistory)
+                )
+                {
+                    await Clients.Caller.ReceiveResponse(response.Content ?? string.Empty);
+                    await Task.Delay(100);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(
+                    "Something went wrong creating conversation: {Message}",
+                    ex.Message
+                );
+            }
+
+            await Clients.Caller.NotifyDone();
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        _sendLocks.TryRemove(Context.ConnectionId, out _);
+        return base.OnDisconnectedAsync(exception);
+    }
+}
