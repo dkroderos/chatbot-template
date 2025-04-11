@@ -1,0 +1,40 @@
+*.cs text diff=csharp
+*.csproj text merge=union
+*.sln text
+*.config text
+*.targets text
+*.props text
+*.xaml text
+
+*.ts text diff=typescript
+*.tsx text diff=typescript
+*.js text diff=javascript
+*.jsx text diff=javascript
+*.css text
+*.html text
+*.json text
+*.md text
+*.yml text
+*.yaml text
+
+# General
+*.sh text eol=lf
+*.bat text eol=crlf
+*.ps1 text
+*.env text
+.gitattributes text
+.gitignore text
+Dockerfile text
+*.dockerfile text
+*.lock text
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
