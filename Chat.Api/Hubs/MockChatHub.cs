@@ -1,10 +1,13 @@
 ﻿using Chat.Api.Contracts;
+using Chat.Api.Options;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 
 namespace Chat.Api.Hubs;
 
-public sealed class MockChatHub(ILogger<MockChatHub> logger) : Hub<IChatClient>
+public sealed class MockChatHub(IOptions<AppOptions> appOptions, ILogger<MockChatHub> logger)
+    : Hub<IChatClient>
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> _sendLocks = new();
 
@@ -26,11 +29,12 @@ public sealed class MockChatHub(ILogger<MockChatHub> logger) : Hub<IChatClient>
         try
         {
             var inputParts = request.Input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            var responseDelay = appOptions.Value.ResponseDelay;
 
             foreach (var part in inputParts)
             {
                 await Clients.Caller.ReceiveResponse(part + " ");
-                await Task.Delay(15);
+                await Task.Delay(responseDelay);
             }
 
             await Clients.Caller.NotifyDone();

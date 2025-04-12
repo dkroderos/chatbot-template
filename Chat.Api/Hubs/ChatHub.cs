@@ -82,12 +82,14 @@ public sealed class ChatHub(
 
             try
             {
+                var responseDelay = appOptions.Value.ResponseDelay;
+
                 await foreach (
                     var response in chat.GetStreamingChatMessageContentsAsync(chatHistory)
                 )
                 {
                     await Clients.Caller.ReceiveResponse(response.Content ?? string.Empty);
-                    await Task.Delay(100);
+                    await Task.Delay(responseDelay);
                 }
             }
             catch (Exception ex)
