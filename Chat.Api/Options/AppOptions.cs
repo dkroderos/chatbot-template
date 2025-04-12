@@ -6,4 +6,7 @@ public sealed class AppOptions
 {
     [Required]
     public required int MaxPreviousConversations { get; init; }
+
+    [Required]
+    public required bool UseMockChatHub { get; init; }
 }

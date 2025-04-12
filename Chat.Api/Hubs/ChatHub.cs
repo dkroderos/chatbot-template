@@ -16,6 +16,12 @@ public sealed class ChatHub(
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> _sendLocks = new();
 
+    public override Task OnConnectedAsync()
+    {
+        logger.LogInformation("Client connected: {ConnectionId}", Context.ConnectionId);
+        return base.OnConnectedAsync();
+    }
+
     // TODO -- Add cancellation token
     public async Task SendChat(ChatRequest request)
     {
@@ -103,6 +109,16 @@ public sealed class ChatHub(
     public override Task OnDisconnectedAsync(Exception? exception)
     {
         _sendLocks.TryRemove(Context.ConnectionId, out _);
+
+        if (exception != null)
+            logger.LogWarning(
+                exception,
+                "Client disconnected with error: {ConnectionId}",
+                Context.ConnectionId
+            );
+        else
+            logger.LogInformation("Client disconnected: {ConnectionId}", Context.ConnectionId);
+
         return base.OnDisconnectedAsync(exception);
     }
 }
