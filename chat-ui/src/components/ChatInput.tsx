@@ -60,10 +60,12 @@ const ChatInput: React.FC<Props> = ({
         <textarea
           ref={textareaRef}
           rows={1}
-          className="scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-neutral-800 transition-colors duration-300 w-full resize-none rounded-xl border border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white p-3 pr-12 focus:outline-none focus:ring-2 focus:ring-neutral-600"
+          className="transition-colors duration-300 w-full resize-none rounded-xl border border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white p-3 pr-12 focus:outline-none focus:ring-2 focus:ring-neutral-600"
           style={{
             overflow: "hidden",
             maxHeight: "200px",
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#888 transparent',
           }}
           placeholder={placeholder}
           value={message}
