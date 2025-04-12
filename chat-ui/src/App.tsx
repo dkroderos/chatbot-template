@@ -4,7 +4,7 @@ import ChatPage from "./pages/ChatPage";
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <div className="transition-colors duration-300 w-full h-screen bg-white dark:bg-black text-black dark:text-white">
+      <div className="transition-colors duration-300 w-full min-h-screen bg-white dark:bg-black text-black dark:text-white">
         <Routes>
           <Route path="/" element={<ChatPage />} />
         </Routes>
