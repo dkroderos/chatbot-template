@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 
 interface Props {
   placeholder?: string;
+  isBusy: boolean;
   onSubmit?: (message: string) => void;
 }
 
 const ChatInput: React.FC<Props> = ({
   placeholder = "Type a message...",
+  isBusy,
   onSubmit,
 }) => {
   const [message, setMessage] = useState("");
@@ -40,6 +42,8 @@ const ChatInput: React.FC<Props> = ({
   };
 
   const handleSubmit = () => {
+    if (isBusy) return;
+
     if (!message.trim()) return;
     onSubmit?.(message.trim());
     setMessage("");
@@ -59,6 +63,7 @@ const ChatInput: React.FC<Props> = ({
       <div className="w-full max-w-3xl mx-auto flex items-end relative">
         <textarea
           ref={textareaRef}
+          disabled={false}
           rows={1}
           className="transition-colors duration-300 w-full resize-none rounded-xl border border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white p-3 pr-12 focus:outline-none focus:ring-2 focus:ring-neutral-600"
           style={{

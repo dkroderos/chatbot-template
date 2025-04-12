@@ -1,18 +1,75 @@
-import { useState } from "react";
+import * as signalR from "@microsoft/signalr";
+import { useEffect, useState } from "react";
 import ChatInput from "../components/ChatInput";
 import Conversations from "../components/Conversations";
 import Header from "../components/Header";
-import { Conversation } from "../models";
+import { ChatRequest, Conversation } from "../models";
 
 const ChatPage: React.FC = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [isBusy, setIsBusy] = useState<boolean>(false);
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(
+    null
+  );
 
-  const handleSubmit = (message: string) => {
+  useEffect(() => {
+    const hubConnection = new signalR.HubConnectionBuilder()
+      .withUrl("/hubs/chat-hub")
+      .configureLogging(signalR.LogLevel.None)
+      .withAutomaticReconnect()
+      .build();
+
+    hubConnection.on("ReceiveResponse", (message: string) => {
+      setConversations((prev) => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        updated[updated.length - 1] = {
+          ...last,
+          response: (last.response ?? "") + message,
+        };
+        return updated;
+      });
+    });
+
+    hubConnection.on("NotifyDone", () => {
+      setIsBusy(false);
+    });
+
+    hubConnection
+      .start()
+      .catch((err) => console.error("Connection failed: ", err));
+    setConnection(hubConnection);
+
+    return () => {
+      if (hubConnection) {
+        hubConnection.stop();
+      }
+    };
+  }, []);
+
+  const handleSubmit = async (message: string) => {
+    if (!connection) return;
+
+    setIsBusy(true);
+
     const newConversation: Conversation = {
       message,
-      response: message,
+      response: "",
     };
+
     setConversations((prev) => [...prev, newConversation]);
+
+    const chatRequest: ChatRequest = {
+      input: message,
+      previousConversations: conversations,
+    };
+
+    try {
+      await connection.send("SendChat", chatRequest);
+    } catch (error) {
+      console.error("Error sending message: ", error);
+      setIsBusy(false);
+    }
   };
 
   const isEmpty = conversations.length === 0;
@@ -29,8 +86,10 @@ const ChatPage: React.FC = () => {
           {!isEmpty && <Conversations conversations={conversations} />}
         </div>
       </div>
-      <div className={isEmpty ? "absolute bottom-1/2 translate-y-1/2 w-full" : ""}>
-        <ChatInput onSubmit={handleSubmit} />
+      <div
+        className={isEmpty ? "absolute bottom-1/2 translate-y-1/2 w-full" : ""}
+      >
+        <ChatInput isBusy={isBusy} onSubmit={handleSubmit} />
       </div>
     </div>
   );
