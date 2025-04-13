@@ -61,7 +61,12 @@ const Conversation: React.FC<Props> = ({
             {conversation.message}
           </div>
         </div>
-        <div className="flex justify-end my-4 group-hover:visible invisible">
+        <div
+          className={`flex justify-end my-4 transition-opacity duration-300 ${
+            isCopyingMessage ? "opacity-100" : "opacity-0"
+          } group-hover:opacity-100`}
+          title="Copy message"
+        >
           {isCopyingMessage ? (
             <Check className="h-4 w-4 text-neutral-500 dark:text-neutral-200" />
           ) : (
@@ -83,9 +88,10 @@ const Conversation: React.FC<Props> = ({
           <ReactMarkdown>{conversation.response}</ReactMarkdown>
           {!isBusy && (
             <div
-              className={`mt-4 ${
-                isLastIndex ? "visible" : "group-hover:visible invisible"
-              }`}
+              className={`mt-4 transition-opacity duration-300 ${
+                isLastIndex || isBusy ? "opacity-100" : "opacity-0"
+              } group-hover:opacity-100`}
+              title="Copy response"
             >
               {isCopyingResponse ? (
                 <Check className="h-4 w-4 text-neutral-500 dark:text-neutral-200" />

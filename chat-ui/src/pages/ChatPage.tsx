@@ -13,8 +13,9 @@ const ChatPage: React.FC = () => {
   const { conversations, setConversations } = useConversations();
   const { connection, isBusy, setIsBusy } = useSignalR(setConversations);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const shouldScrollDownRef = useRef<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isDownArrowVisible, setIsDownArrowVisible] = useState<boolean>(true);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (message: string) => {
@@ -27,7 +28,6 @@ const ChatPage: React.FC = () => {
       response: "",
     };
 
-    shouldScrollDownRef.current = true;
     setConversations((prev) => [...prev, newConversation]);
 
     const chatRequest: ChatRequestModel = {
@@ -37,28 +37,62 @@ const ChatPage: React.FC = () => {
 
     try {
       await connection.send("SendChat", chatRequest);
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     } catch (error) {
       console.error("Error sending message: ", error);
+    } finally {
       setIsBusy(false);
     }
   };
 
   const isEmpty = conversations.length === 0;
 
+  const checkIfAtBottom = () => {
+    if (bottomRef.current) {
+      const isAtBottom =
+        bottomRef.current.getBoundingClientRect().top <= window.innerHeight;
+      setIsDownArrowVisible(!isAtBottom);
+    }
+  };
+
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === "l") {
         event.preventDefault();
-        setIsModalOpen(true);
+        if (event.shiftKey) toggleTheme();
+        else setIsModalOpen((prev) => !prev);
+      }
+
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "l") {
+        event.preventDefault();
+        toggleTheme();
+      }
+
+      if (
+        event.key === "Enter" &&
+        document.activeElement !== textareaRef.current
+      ) {
+        event.preventDefault();
+        textareaRef.current?.focus();
+      }
+
+      if (
+        event.key === "Escape" &&
+        document.activeElement === textareaRef.current
+      ) {
+        event.preventDefault();
+        textareaRef.current?.blur();
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
+    window.addEventListener("scroll", checkIfAtBottom);
 
     return () => {
       window.removeEventListener("keydown", handleKeyPress);
+      window.removeEventListener("scroll", checkIfAtBottom);
     };
-  }, []);
+  }, [toggleTheme]);
 
   return (
     <>
@@ -91,7 +125,12 @@ const ChatPage: React.FC = () => {
           <ChatInput
             conversations={conversations}
             isBusy={isBusy}
+            textareaRef={textareaRef}
             onSubmit={handleSubmit}
+            isDownArrowVisible={isDownArrowVisible}
+            onDownArrowClick={() => {
+              bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+            }}
           />
         </div>
       </div>

@@ -45,7 +45,7 @@ const ClearConversations: React.FC<Props> = ({ onClose, onConfirm }) => {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black/50 dark:bg-white/10 z-2"
+      className="fixed inset-0 flex items-center justify-center bg-black/50 dark:bg-neutral-900/40 z-2"
       onClick={onClose}
     >
       <div
@@ -65,7 +65,7 @@ const ClearConversations: React.FC<Props> = ({ onClose, onConfirm }) => {
           <button
             ref={yesButtonRef}
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-500 dark:bg-red-600 text-white rounded transition-colors duration-200 hover:outline hover:outline-2 hover:outline-black dark:hover:outline-white"
+            className="px-4 py-2 bg-neutral-300 dark:bg-neutral-700 text-black dark:text-white rounded transition-colors duration-200 hover:outline hover:outline-2 hover:outline-black dark:hover:outline-white"
           >
             Yes
           </button>
