@@ -5,5 +5,5 @@ export interface ChatRequestModel {
 
 export interface ConversationModel {
   message: string;
-  response: string;
+  response: string | undefined;
 }

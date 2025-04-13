@@ -8,6 +8,7 @@ interface Props {
   isLastIndex: boolean;
   screenHeight: number;
   isBusy: boolean;
+  error: string | null;
 }
 
 const Conversation: React.FC<Props> = ({
@@ -15,6 +16,7 @@ const Conversation: React.FC<Props> = ({
   isLastIndex,
   screenHeight,
   isBusy,
+  error,
 }) => {
   const [isCopyingMessage, setIsCopyingMessage] = useState<boolean>(false);
   const [isCopyingResponse, setIsCopyingResponse] = useState<boolean>(false);
@@ -41,7 +43,7 @@ const Conversation: React.FC<Props> = ({
 
     setIsCopyingResponse(true);
     navigator.clipboard
-      .writeText(conversation.response)
+      .writeText(conversation.response || "")
       .then(() => {
         setTimeout(() => {
           setIsCopyingResponse(false);
@@ -85,7 +87,21 @@ const Conversation: React.FC<Props> = ({
         }}
       >
         <div className="whitespace-pre-wrap max-w-[80%] break-words prose prose-neutral dark:prose-invert">
-          <ReactMarkdown>{conversation.response}</ReactMarkdown>
+          {conversation?.response ? (
+            <ReactMarkdown>{conversation.response}</ReactMarkdown>
+          ) : !error ? (
+            <div className="flex justify-center items-center mx-1">
+              <div className="w-4 h-4 rounded-full bg-black dark:bg-white animate-expand-contract" />
+            </div>
+          ) : null}
+          {error && isLastIndex && (
+            <div className="flex justify-start pt-4">
+              <div className="border border-red-500 rounded-md px-4 py-2 text-red-500 bg-red-500/10 w-full">
+                {error}
+              </div>
+            </div>
+          )}
+
           {!isBusy && (
             <div
               className={`mt-4 transition-opacity duration-300 ${

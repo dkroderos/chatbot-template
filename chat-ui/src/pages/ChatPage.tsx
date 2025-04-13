@@ -11,7 +11,7 @@ import { ChatRequestModel, ConversationModel } from "../models";
 const ChatPage: React.FC = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { conversations, setConversations } = useConversations();
-  const { connection, isBusy, setIsBusy } = useSignalR(setConversations);
+  const { connection, isBusy, setIsBusy, error, setError } = useSignalR(setConversations);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isDownArrowVisible, setIsDownArrowVisible] = useState<boolean>(true);
@@ -22,10 +22,11 @@ const ChatPage: React.FC = () => {
     if (!connection) return;
 
     setIsBusy(true);
+    setError(null);
 
     const newConversation: ConversationModel = {
       message,
-      response: "",
+      response: undefined,
     };
 
     setConversations((prev) => [...prev, newConversation]);
@@ -113,6 +114,7 @@ const ChatPage: React.FC = () => {
                 conversations={conversations}
                 bottomRef={bottomRef}
                 isBusy={isBusy}
+                error={error}
               />
             )}
           </div>

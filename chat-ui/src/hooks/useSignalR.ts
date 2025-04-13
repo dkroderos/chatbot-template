@@ -9,6 +9,7 @@ const useSignalR = (
     null
   );
   const [isBusy, setIsBusy] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const hubConnection = new signalR.HubConnectionBuilder()
@@ -33,6 +34,11 @@ const useSignalR = (
       setIsBusy(false);
     });
 
+    hubConnection.on("ReceiveError", (errorMessage: string) => {
+      setError(errorMessage);
+      setIsBusy(false);
+    });
+
     hubConnection
       .start()
       .catch((err) => console.error("Connection failed: ", err));
@@ -46,7 +52,7 @@ const useSignalR = (
     };
   }, [setConversations]);
 
-  return { connection, isBusy, setIsBusy };
+  return { connection, isBusy, setIsBusy, error, setError };
 };
 
 export default useSignalR;

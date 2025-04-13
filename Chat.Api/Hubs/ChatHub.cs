@@ -94,6 +94,7 @@ public sealed class ChatHub(
                     "Something went wrong creating conversation: {Message}",
                     ex.Message
                 );
+                await Clients.Caller.ReceiveError("An error occurred while generating the response.");
             }
 
             await Clients.Caller.NotifyDone();

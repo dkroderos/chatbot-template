@@ -6,12 +6,14 @@ interface Props {
   conversations: ConversationModel[];
   bottomRef: React.RefObject<HTMLDivElement | null>;
   isBusy: boolean;
+  error: string | null;
 }
 
 const Conversations: React.FC<Props> = ({
   conversations,
   bottomRef,
   isBusy,
+  error,
 }) => {
   const [screenHeight, setScreenHeight] = useState<number>(window.innerHeight);
 
@@ -33,6 +35,7 @@ const Conversations: React.FC<Props> = ({
           screenHeight={screenHeight}
           isLastIndex={index === conversations.length - 1}
           isBusy={isBusy}
+          error={error}
         />
       ))}
       <div ref={bottomRef} className="pb-20" />
