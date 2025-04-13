@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ThemeContext } from "./ThemeContext";
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+interface Props {
+  children: React.ReactNode;
+}
+
+const ThemeProvider: React.FC<Props> = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     return savedTheme === "dark";
@@ -21,4 +25,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       {children}
     </ThemeContext.Provider>
   );
-}
+};
+
+export default ThemeProvider;

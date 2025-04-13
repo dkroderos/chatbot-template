@@ -28,6 +28,7 @@ const Conversations: React.FC<Props> = ({
     <div className="space-y-4 overflow-y-auto">
       {conversations.map((conversation, index) => (
         <Conversation
+          key={index}
           conversation={conversation}
           screenHeight={screenHeight}
           isLastIndex={index === conversations.length - 1}

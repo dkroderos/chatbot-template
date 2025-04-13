@@ -18,6 +18,12 @@ const ChatInput: React.FC<Props> = ({
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -58,11 +64,12 @@ const ChatInput: React.FC<Props> = ({
         e.preventDefault();
         handleSubmit();
       }}
-      className={`w-full px-4 py-3 bg-white dark:bg-black z-50 ${
+      className={`w-full px-4 py-3 bg-white dark:bg-black z-1 ${
         conversations.length === 0
           ? "h-screen flex items-center justify-center"
           : "fixed bottom-0 left-0"
       }`}
+      onClick={() => textareaRef.current?.focus()}
     >
       <div className="w-full max-w-3xl mx-auto">
         <div className="flex flex-col gap-2 rounded-xl border border-neutral-700 bg-neutral-100 dark:bg-neutral-900 p-3">

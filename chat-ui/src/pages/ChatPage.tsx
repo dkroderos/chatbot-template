@@ -1,59 +1,21 @@
-import * as signalR from "@microsoft/signalr";
 import { useEffect, useRef, useState } from "react";
 import ChatInput from "../components/ChatInput";
+import ClearConversations from "../components/ClearConversations";
 import Conversations from "../components/Conversations";
 import Header from "../components/Header";
+import useConversations from "../hooks/useConversations";
+import useSignalR from "../hooks/useSignalR";
+import useTheme from "../hooks/useTheme";
 import { ChatRequestModel, ConversationModel } from "../models";
 
 const ChatPage: React.FC = () => {
-  const [conversations, setConversations] = useState<ConversationModel[]>([]);
-  const [isBusy, setIsBusy] = useState<boolean>(false);
-  const [connection, setConnection] = useState<signalR.HubConnection | null>(
-    null
-  );
+  const { isDarkMode, toggleTheme } = useTheme();
+  const { conversations, setConversations } = useConversations();
+  const { connection, isBusy, setIsBusy } = useSignalR(setConversations);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const shouldScrollDownRef = useRef<boolean>(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl("/hubs/chat-hub")
-      .configureLogging(signalR.LogLevel.None)
-      .withAutomaticReconnect()
-      .build();
-
-    hubConnection.on("ReceiveResponse", (message: string) => {
-      setConversations((prev) => {
-        const updated = [...prev];
-        const last = updated[updated.length - 1];
-        updated[updated.length - 1] = {
-          ...last,
-          response: (last.response ?? "") + message,
-        };
-        return updated;
-      });
-    });
-
-    hubConnection.on("NotifyDone", () => {
-      setIsBusy(false);
-    });
-
-    hubConnection
-      .start()
-      .catch((err) => console.error("Connection failed: ", err));
-    setConnection(hubConnection);
-
-    return () => {
-      if (hubConnection) {
-        hubConnection.stop();
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (shouldScrollDownRef.current)
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    shouldScrollDownRef.current = false;
-  }, [conversations]);
 
   const handleSubmit = async (message: string) => {
     if (!connection) return;
@@ -83,34 +45,67 @@ const ChatPage: React.FC = () => {
 
   const isEmpty = conversations.length === 0;
 
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === "l") {
+        event.preventDefault();
+        setIsModalOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <div
-        className={`flex-grow flex px-4 py-6 ${
-          isEmpty ? "items-center justify-center" : "justify-center"
-        }`}
-      >
-        <div className="w-full max-w-3xl space-y-4">
-          {!isEmpty && (
-            <Conversations
-              conversations={conversations}
-              bottomRef={bottomRef}
-              isBusy={isBusy}
-            />
-          )}
+    <>
+      <div className="flex flex-col min-h-screen">
+        <Header
+          isDarkMode={isDarkMode}
+          toggleTheme={toggleTheme}
+          onTrashClick={() => setIsModalOpen((prev) => !prev)}
+        />
+        <div
+          className={`flex-grow flex px-4 py-6 ${
+            isEmpty ? "items-center justify-center" : "justify-center"
+          }`}
+        >
+          <div className="w-full max-w-3xl space-y-4">
+            {!isEmpty && (
+              <Conversations
+                conversations={conversations}
+                bottomRef={bottomRef}
+                isBusy={isBusy}
+              />
+            )}
+          </div>
+        </div>
+        <div
+          className={
+            isEmpty ? "absolute bottom-1/2 translate-y-1/2 w-full" : ""
+          }
+        >
+          <ChatInput
+            conversations={conversations}
+            isBusy={isBusy}
+            onSubmit={handleSubmit}
+          />
         </div>
       </div>
-      <div
-        className={isEmpty ? "absolute bottom-1/2 translate-y-1/2 w-full" : ""}
-      >
-        <ChatInput
-          conversations={conversations}
-          isBusy={isBusy}
-          onSubmit={handleSubmit}
+
+      {isModalOpen && (
+        <ClearConversations
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={() => {
+            setConversations([]);
+            setIsModalOpen(false);
+          }}
         />
-      </div>
-    </div>
+      )}
+    </>
   );
 };
 
