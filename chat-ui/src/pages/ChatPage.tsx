@@ -1,5 +1,5 @@
 import * as signalR from "@microsoft/signalr";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ChatInput from "../components/ChatInput";
 import Conversations from "../components/Conversations";
 import Header from "../components/Header";
@@ -11,6 +11,8 @@ const ChatPage: React.FC = () => {
   const [connection, setConnection] = useState<signalR.HubConnection | null>(
     null
   );
+  const shouldScrollDownRef = useRef<boolean>(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const hubConnection = new signalR.HubConnectionBuilder()
@@ -47,6 +49,12 @@ const ChatPage: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (shouldScrollDownRef.current)
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    shouldScrollDownRef.current = false;
+  }, [conversations]);
+
   const handleSubmit = async (message: string) => {
     if (!connection) return;
 
@@ -57,6 +65,7 @@ const ChatPage: React.FC = () => {
       response: "",
     };
 
+    shouldScrollDownRef.current = true;
     setConversations((prev) => [...prev, newConversation]);
 
     const chatRequest: ChatRequest = {
@@ -83,7 +92,12 @@ const ChatPage: React.FC = () => {
         }`}
       >
         <div className="w-full max-w-3xl space-y-4">
-          {!isEmpty && <Conversations conversations={conversations} />}
+          {!isEmpty && (
+            <Conversations
+              conversations={conversations}
+              bottomRef={bottomRef}
+            />
+          )}
         </div>
       </div>
       <div

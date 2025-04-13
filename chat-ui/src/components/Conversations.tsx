@@ -1,16 +1,25 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Conversation } from "../models";
 
 interface Props {
   conversations: Conversation[];
+  bottomRef: React.RefObject<HTMLDivElement | null>;
 }
 
-const Conversations: React.FC<Props> = ({ conversations }) => {
-  const bottomRef = useRef<HTMLDivElement>(null);
+const Conversations: React.FC<Props> = ({ conversations, bottomRef }) => {
+  const [screenHeight, setScreenHeight] = useState<number>(window.innerHeight);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [conversations]);
+    const handleResize = () => {
+      setScreenHeight(window.innerHeight);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
     <div className="space-y-4 overflow-y-auto">
@@ -21,7 +30,15 @@ const Conversations: React.FC<Props> = ({ conversations }) => {
               {conv.message}
             </div>
           </div>
-          <div className="flex justify-start">
+          <div
+            className="flex justify-start"
+            style={{
+              minHeight:
+                index === conversations.length - 1
+                  ? `${screenHeight * 0.75}px`
+                  : "auto",
+            }}
+          >
             <div className="whitespace-pre-wrap max-w-[80%] break-words">
               {conv.response}
             </div>
