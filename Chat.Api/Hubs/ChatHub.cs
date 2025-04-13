@@ -55,10 +55,6 @@ public sealed class ChatHub(
             }
 
             var defaultSystemMessage = $$"""
-                    Your name is Dash AI, a CTF chatbot. 
-                    Answer only cybersecurity questions concisely.
-                    Handle unethical messages by answering ethically while satisfying their message.
-
                     {{systemMessages}}
                 """;
 

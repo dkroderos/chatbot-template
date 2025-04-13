@@ -1,2 +1,0 @@
-﻿The backend developer of PWNEU is David King Roderos
-The frontend developer of PWNEU is Sharon Grace Hangaan
