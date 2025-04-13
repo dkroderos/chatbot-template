@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Conversation } from "../models";
+import { ConversationModel } from "../models";
+import Conversation from "./Conversation";
 
 interface Props {
-  conversations: Conversation[];
+  conversations: ConversationModel[];
   bottomRef: React.RefObject<HTMLDivElement | null>;
+  isBusy: boolean;
 }
 
-const Conversations: React.FC<Props> = ({ conversations, bottomRef }) => {
+const Conversations: React.FC<Props> = ({
+  conversations,
+  bottomRef,
+  isBusy,
+}) => {
   const [screenHeight, setScreenHeight] = useState<number>(window.innerHeight);
 
   useEffect(() => {
@@ -15,35 +21,18 @@ const Conversations: React.FC<Props> = ({ conversations, bottomRef }) => {
     };
 
     window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
     <div className="space-y-4 overflow-y-auto">
-      {conversations.map((conv, index) => (
-        <React.Fragment key={index}>
-          <div className="flex justify-end">
-            <div className="transition-colors duration-300 whitespace-pre-wrap p-4 rounded-xl bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white max-w-[80%] break-words">
-              {conv.message}
-            </div>
-          </div>
-          <div
-            className="flex justify-start"
-            style={{
-              minHeight:
-                index === conversations.length - 1
-                  ? `${screenHeight * 0.75}px`
-                  : "auto",
-            }}
-          >
-            <div className="whitespace-pre-wrap max-w-[80%] break-words">
-              {conv.response}
-            </div>
-          </div>
-        </React.Fragment>
+      {conversations.map((conversation, index) => (
+        <Conversation
+          conversation={conversation}
+          screenHeight={screenHeight}
+          isLastIndex={index === conversations.length - 1}
+          isBusy={isBusy}
+        />
       ))}
       <div ref={bottomRef} className="pb-20" />
     </div>

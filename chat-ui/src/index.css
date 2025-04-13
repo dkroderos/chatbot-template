@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  * {
+    @apply transition-colors duration-300;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;

@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import ChatInput from "../components/ChatInput";
 import Conversations from "../components/Conversations";
 import Header from "../components/Header";
-import { ChatRequest, Conversation } from "../models";
+import { ChatRequestModel, ConversationModel } from "../models";
 
 const ChatPage: React.FC = () => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<ConversationModel[]>([]);
   const [isBusy, setIsBusy] = useState<boolean>(false);
   const [connection, setConnection] = useState<signalR.HubConnection | null>(
     null
@@ -60,7 +60,7 @@ const ChatPage: React.FC = () => {
 
     setIsBusy(true);
 
-    const newConversation: Conversation = {
+    const newConversation: ConversationModel = {
       message,
       response: "",
     };
@@ -68,7 +68,7 @@ const ChatPage: React.FC = () => {
     shouldScrollDownRef.current = true;
     setConversations((prev) => [...prev, newConversation]);
 
-    const chatRequest: ChatRequest = {
+    const chatRequest: ChatRequestModel = {
       input: message,
       previousConversations: conversations,
     };
@@ -96,6 +96,7 @@ const ChatPage: React.FC = () => {
             <Conversations
               conversations={conversations}
               bottomRef={bottomRef}
+              isBusy={isBusy}
             />
           )}
         </div>
@@ -103,7 +104,11 @@ const ChatPage: React.FC = () => {
       <div
         className={isEmpty ? "absolute bottom-1/2 translate-y-1/2 w-full" : ""}
       >
-        <ChatInput isBusy={isBusy} onSubmit={handleSubmit} />
+        <ChatInput
+          conversations={conversations}
+          isBusy={isBusy}
+          onSubmit={handleSubmit}
+        />
       </div>
     </div>
   );

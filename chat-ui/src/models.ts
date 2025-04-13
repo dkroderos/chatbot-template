@@ -1,9 +1,9 @@
-export interface ChatRequest {
+export interface ChatRequestModel {
   input: string;
-  previousConversations: Conversation[];
+  previousConversations: ConversationModel[];
 }
 
-export interface Conversation {
+export interface ConversationModel {
   message: string;
   response: string;
 }

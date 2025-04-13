@@ -1,13 +1,17 @@
+import { Send, StopCircle } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import { ConversationModel } from "../models";
 
 interface Props {
   placeholder?: string;
+  conversations: ConversationModel[];
   isBusy: boolean;
   onSubmit?: (message: string) => void;
 }
 
 const ChatInput: React.FC<Props> = ({
   placeholder = "Type a message...",
+  conversations,
   isBusy,
   onSubmit,
 }) => {
@@ -17,10 +21,8 @@ const ChatInput: React.FC<Props> = ({
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-
       const newHeight = Math.min(textareaRef.current.scrollHeight, 200);
       textareaRef.current.style.height = `${newHeight}px`;
-
       textareaRef.current.style.overflowY =
         newHeight >= 200 ? "auto" : "hidden";
     }
@@ -42,9 +44,7 @@ const ChatInput: React.FC<Props> = ({
   };
 
   const handleSubmit = () => {
-    if (isBusy) return;
-
-    if (!message.trim()) return;
+    if (isBusy || !message.trim()) return;
     onSubmit?.(message.trim());
     setMessage("");
     if (textareaRef.current) {
@@ -58,25 +58,49 @@ const ChatInput: React.FC<Props> = ({
         e.preventDefault();
         handleSubmit();
       }}
-      className="transition-colors duration-300 fixed bottom-0 left-0 w-full px-4 py-3 bg-white dark:bg-black z-50"
+      className={`w-full px-4 py-3 bg-white dark:bg-black z-50 ${
+        conversations.length === 0
+          ? "h-screen flex items-center justify-center"
+          : "fixed bottom-0 left-0"
+      }`}
     >
-      <div className="w-full max-w-3xl mx-auto flex items-end relative">
-        <textarea
-          ref={textareaRef}
-          disabled={false}
-          rows={1}
-          className="transition-colors duration-300 w-full resize-none rounded-xl border border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white p-3 pr-12 focus:outline-none focus:ring-2 focus:ring-neutral-600"
-          style={{
-            overflow: "hidden",
-            maxHeight: "200px",
-            scrollbarWidth: 'thin',
-            scrollbarColor: '#888 transparent',
-          }}
-          placeholder={placeholder}
-          value={message}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-        />
+      <div className="w-full max-w-3xl mx-auto">
+        <div className="flex flex-col gap-2 rounded-xl border border-neutral-700 bg-neutral-100 dark:bg-neutral-900 p-3">
+          <textarea
+            ref={textareaRef}
+            disabled={false}
+            rows={1}
+            className="w-full resize-none bg-transparent text-black dark:text-white focus:outline-none"
+            style={{
+              overflow: "hidden",
+              maxHeight: "200px",
+              scrollbarWidth: "thin",
+              scrollbarColor: "#888 transparent",
+            }}
+            placeholder={placeholder}
+            value={message}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+          />
+
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-neutral-500">
+              {isBusy ? "Generating..." : "Press Enter to send"}
+            </div>
+            <button
+              type="button"
+              onClick={!isBusy ? handleSubmit : undefined}
+              disabled={!isBusy && !message.trim()}
+              className="rounded-full hover:bg-neutral-300 dark:hover:bg-neutral-800 disabled:opacity-50"
+            >
+              {isBusy ? (
+                <StopCircle size={20} className="text-black dark:text-white" />
+              ) : (
+                <Send size={20} className="text-black dark:text-white" />
+              )}
+            </button>
+          </div>
+        </div>
       </div>
     </form>
   );
