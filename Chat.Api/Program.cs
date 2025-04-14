@@ -11,7 +11,8 @@ builder
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(x => x.MaximumReceiveMessageSize = 1024 * 1024 * 10);
+
 builder.Services.AddCors();
 builder.Services.AddOpenAIChatCompletion(
     "gpt-4o-mini",

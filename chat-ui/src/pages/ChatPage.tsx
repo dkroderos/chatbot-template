@@ -30,7 +30,12 @@ const ChatPage: React.FC = () => {
   };
 
   const handleSubmit = async (message: string) => {
-    if (!connection) return;
+    if (isBusy) return;
+
+    if (!connection) {
+      setError("You are disconnected.");
+      return;
+    }
 
     setIsBusy(true);
     setError(null);
