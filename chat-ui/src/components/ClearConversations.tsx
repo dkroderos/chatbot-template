@@ -1,11 +1,16 @@
 import React, { useEffect, useRef } from "react";
 
 interface Props {
+  isBusy: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
 
-const ClearConversations: React.FC<Props> = ({ onClose, onConfirm }) => {
+const ClearConversations: React.FC<Props> = ({
+  isBusy,
+  onClose,
+  onConfirm,
+}) => {
   const noButtonRef = useRef<HTMLButtonElement>(null);
   const yesButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -16,21 +21,17 @@ const ClearConversations: React.FC<Props> = ({ onClose, onConfirm }) => {
           onClose();
           break;
         case "ArrowLeft":
-          if (document.activeElement === yesButtonRef.current) {
+          if (document.activeElement === yesButtonRef.current)
             noButtonRef.current?.focus();
-          }
           break;
         case "ArrowRight":
-          if (document.activeElement === noButtonRef.current) {
+          if (document.activeElement === noButtonRef.current)
             yesButtonRef.current?.focus();
-          }
           break;
         case "Enter":
-          if (document.activeElement === noButtonRef.current) {
-            onClose();
-          } else if (document.activeElement === yesButtonRef.current) {
+          if (document.activeElement === noButtonRef.current) onClose();
+          else if (document.activeElement === yesButtonRef.current && !isBusy)
             onConfirm();
-          }
           break;
       }
     };
@@ -41,7 +42,7 @@ const ClearConversations: React.FC<Props> = ({ onClose, onConfirm }) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onClose, onConfirm]);
+  }, [isBusy, onClose, onConfirm]);
 
   return (
     <div

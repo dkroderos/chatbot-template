@@ -114,7 +114,7 @@ const ChatInput: React.FC<Props> = ({
                 type="button"
                 onClick={!isBusy ? handleSubmit : onStop}
                 disabled={!isBusy && !message.trim()}
-                className="rounded-full hover:bg-neutral-300 dark:hover:bg-neutral-800 disabled:opacity-50"
+                className="rounded-full hover:bg-neutral-300 dark:hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
                 title="Send"
               >
                 {isBusy ? (

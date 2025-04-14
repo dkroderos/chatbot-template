@@ -16,6 +16,7 @@ const ChatPage: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isDownArrowVisible, setIsDownArrowVisible] = useState<boolean>(true);
+  const shouldScrollDownRef = useRef<boolean>(false);
   const subscriptionRef = useRef<signalR.ISubscription<string> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -39,6 +40,7 @@ const ChatPage: React.FC = () => {
       response: undefined,
     };
 
+    shouldScrollDownRef.current = true;
     setConversations((prev) => [...prev, newConversation]);
 
     const chatRequest: ChatRequestModel = {
@@ -48,7 +50,6 @@ const ChatPage: React.FC = () => {
 
     try {
       const stream = connection.stream("StreamChat", chatRequest);
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 
       subscriptionRef.current = stream.subscribe({
         next: (chunk: string) => {
@@ -72,8 +73,6 @@ const ChatPage: React.FC = () => {
           setIsBusy(false);
         },
       });
-
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     } catch (error) {
       console.error("Error sending message: ", error);
       setError("An error occurred while generating the response.");
@@ -96,7 +95,7 @@ const ChatPage: React.FC = () => {
       if (event.ctrlKey && event.key === "l") {
         event.preventDefault();
         if (event.shiftKey) toggleTheme();
-        else setIsModalOpen((prev) => !prev);
+        else if (!isBusy) setIsModalOpen((prev) => !prev);
       }
 
       if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "l") {
@@ -128,7 +127,7 @@ const ChatPage: React.FC = () => {
       window.removeEventListener("keydown", handleKeyPress);
       window.removeEventListener("scroll", checkIfAtBottom);
     };
-  }, [toggleTheme]);
+  }, [toggleTheme, isBusy]);
 
   useEffect(() => {
     return () => {
@@ -138,13 +137,22 @@ const ChatPage: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (shouldScrollDownRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      shouldScrollDownRef.current = false;
+    }
+  });
+
   return (
     <>
       <div className="flex flex-col min-h-screen">
         <Header
           isDarkMode={isDarkMode}
           toggleTheme={toggleTheme}
-          onTrashClick={() => setIsModalOpen((prev) => !prev)}
+          onTrashClick={() => {
+            if (!isBusy) setIsModalOpen((prev) => !prev);
+          }}
         />
         <div
           className={`flex-grow flex px-4 py-6 ${
@@ -183,10 +191,13 @@ const ChatPage: React.FC = () => {
 
       {isModalOpen && (
         <ClearConversations
+          isBusy={isBusy}
           onClose={() => setIsModalOpen(false)}
           onConfirm={() => {
-            setConversations([]);
-            setIsModalOpen(false);
+            if (!isBusy) {
+              setConversations([]);
+              setIsModalOpen(false);
+            }
           }}
         />
       )}
