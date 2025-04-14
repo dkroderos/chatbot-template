@@ -2,53 +2,36 @@
 using Chat.Api.Options;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
-using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
 namespace Chat.Api.Hubs;
 
-public sealed class MockChatHub(IOptions<AppOptions> appOptions, ILogger<MockChatHub> logger)
-    : Hub<IChatClient>
+public sealed class MockChatHub(IOptions<AppOptions> appOptions, ILogger<MockChatHub> logger) : Hub
 {
-    private static readonly ConcurrentDictionary<string, SemaphoreSlim> _sendLocks = new();
-
     public override Task OnConnectedAsync()
     {
         logger.LogInformation("Client connected: {ConnectionId}", Context.ConnectionId);
         return base.OnConnectedAsync();
     }
 
-    public async Task SendChat(ChatRequest request)
+    public async IAsyncEnumerable<string> StreamChat(
+        ChatRequest request,
+        [EnumeratorCancellation] CancellationToken cancellationToken
+    )
     {
-        var connectionId = Context.ConnectionId;
+        var inputParts = request.Input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+        var responseDelay = appOptions.Value.ResponseDelay;
 
-        var semaphore = _sendLocks.GetOrAdd(connectionId, _ => new SemaphoreSlim(1, 1));
-
-        if (!await semaphore.WaitAsync(0))
-            return;
-
-        try
+        foreach (var part in inputParts)
         {
-            var inputParts = request.Input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-            var responseDelay = appOptions.Value.ResponseDelay;
-
-            foreach (var part in inputParts)
-            {
-                await Clients.Caller.ReceiveResponse(part + " ");
-                await Task.Delay(responseDelay);
-            }
-
-            await Clients.Caller.NotifyDone();
-        }
-        finally
-        {
-            semaphore.Release();
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return part + " ";
+            await Task.Delay(Math.Max(0, responseDelay), cancellationToken);
         }
     }
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
-        _sendLocks.TryRemove(Context.ConnectionId, out _);
-
         if (exception != null)
             logger.LogWarning(
                 exception,

@@ -94,6 +94,7 @@ const Conversation: React.FC<Props> = ({
               <div className="w-4 h-4 rounded-full bg-black dark:bg-white animate-expand-contract" />
             </div>
           ) : null}
+
           {error && isLastIndex && (
             <div className="flex justify-start pt-4">
               <div className="border border-red-500 rounded-md px-4 py-2 text-red-500 bg-red-500/10 w-full">
@@ -102,11 +103,9 @@ const Conversation: React.FC<Props> = ({
             </div>
           )}
 
-          {!isBusy && (
+          {(!isLastIndex || (isLastIndex && !isBusy)) && (
             <div
-              className={`mt-4 transition-opacity duration-300 ${
-                isLastIndex || isBusy ? "opacity-100" : "opacity-0"
-              } group-hover:opacity-100`}
+              className="mt-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
               title="Copy response"
             >
               {isCopyingResponse ? (

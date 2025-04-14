@@ -11,12 +11,22 @@ import { ChatRequestModel, ConversationModel } from "../models";
 const ChatPage: React.FC = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { conversations, setConversations } = useConversations();
-  const { connection, isBusy, setIsBusy, error, setError } = useSignalR(setConversations);
+  const { connection, isBusy, setIsBusy, error, setError } =
+    useSignalR(setConversations);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isDownArrowVisible, setIsDownArrowVisible] = useState<boolean>(true);
+  const subscriptionRef = useRef<signalR.ISubscription<string> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const handleStop = () => {
+    if (subscriptionRef.current) {
+      subscriptionRef.current.dispose();
+      subscriptionRef.current = null;
+      setIsBusy(false);
+    }
+  };
 
   const handleSubmit = async (message: string) => {
     if (!connection) return;
@@ -37,11 +47,36 @@ const ChatPage: React.FC = () => {
     };
 
     try {
-      await connection.send("SendChat", chatRequest);
+      const stream = connection.stream("StreamChat", chatRequest);
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+
+      subscriptionRef.current = stream.subscribe({
+        next: (chunk: string) => {
+          setConversations((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            updated[updated.length - 1] = {
+              ...last,
+              response: (last.response ?? "") + chunk,
+            };
+
+            return updated;
+          });
+        },
+        complete: () => {
+          setIsBusy(false);
+        },
+        error: (err) => {
+          console.error("Stream error:", err);
+          setError("An error occurred while generating the response.");
+          setIsBusy(false);
+        },
+      });
+
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     } catch (error) {
       console.error("Error sending message: ", error);
-    } finally {
+      setError("An error occurred while generating the response.");
       setIsBusy(false);
     }
   };
@@ -95,6 +130,14 @@ const ChatPage: React.FC = () => {
     };
   }, [toggleTheme]);
 
+  useEffect(() => {
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.dispose();
+      }
+    };
+  }, []);
+
   return (
     <>
       <div className="flex flex-col min-h-screen">
@@ -129,6 +172,7 @@ const ChatPage: React.FC = () => {
             isBusy={isBusy}
             textareaRef={textareaRef}
             onSubmit={handleSubmit}
+            onStop={handleStop}
             isDownArrowVisible={isDownArrowVisible}
             onDownArrowClick={() => {
               bottomRef.current?.scrollIntoView({ behavior: "smooth" });

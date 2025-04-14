@@ -18,27 +18,6 @@ const useSignalR = (
       .withAutomaticReconnect()
       .build();
 
-    hubConnection.on("ReceiveResponse", (message: string) => {
-      setConversations((prev) => {
-        const updated = [...prev];
-        const last = updated[updated.length - 1];
-        updated[updated.length - 1] = {
-          ...last,
-          response: (last.response ?? "") + message,
-        };
-        return updated;
-      });
-    });
-
-    hubConnection.on("NotifyDone", () => {
-      setIsBusy(false);
-    });
-
-    hubConnection.on("ReceiveError", (errorMessage: string) => {
-      setError(errorMessage);
-      setIsBusy(false);
-    });
-
     hubConnection
       .start()
       .catch((err) => console.error("Connection failed: ", err));

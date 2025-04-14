@@ -7,7 +7,8 @@ interface Props {
   conversations: ConversationModel[];
   isBusy: boolean;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
-  onSubmit?: (message: string) => void;
+  onSubmit: (message: string) => void;
+  onStop: () => void;
   isDownArrowVisible: boolean;
   onDownArrowClick: () => void;
 }
@@ -18,6 +19,7 @@ const ChatInput: React.FC<Props> = ({
   isBusy,
   textareaRef,
   onSubmit,
+  onStop,
   isDownArrowVisible,
   onDownArrowClick,
 }) => {
@@ -110,7 +112,7 @@ const ChatInput: React.FC<Props> = ({
               </div>
               <button
                 type="button"
-                onClick={!isBusy ? handleSubmit : undefined}
+                onClick={!isBusy ? handleSubmit : onStop}
                 disabled={!isBusy && !message.trim()}
                 className="rounded-full hover:bg-neutral-300 dark:hover:bg-neutral-800 disabled:opacity-50"
                 title="Send"
