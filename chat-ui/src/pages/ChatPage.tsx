@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import ChatInput from "../components/ChatInput";
 import ClearConversations from "../components/ClearConversations";
 import Conversations from "../components/Conversations";
@@ -16,6 +17,7 @@ const ChatPage: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isDownArrowVisible, setIsDownArrowVisible] = useState<boolean>(true);
+  const isEditingMessageRef = useRef<boolean>(false);
   const shouldScrollDownRef = useRef<boolean>(false);
   const subscriptionRef = useRef<signalR.ISubscription<string> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -25,6 +27,73 @@ const ChatPage: React.FC = () => {
     if (subscriptionRef.current) {
       subscriptionRef.current.dispose();
       subscriptionRef.current = null;
+      setIsBusy(false);
+    }
+  };
+
+  const handleSaveEdit = (id: string, newMessage: string) => {
+    if (isBusy) return;
+
+    if (!connection) {
+      setError("You are disconnected.");
+      return;
+    }
+
+    setIsBusy(true);
+    setError(null);
+
+    shouldScrollDownRef.current = true;
+    setConversations((prev) => {
+      const index = prev.findIndex((conv) => conv.id === id);
+      if (index === -1) return prev;
+
+      const updated = [...prev.slice(0, index + 1)];
+      updated[index] = {
+        ...updated[index],
+        message: newMessage,
+        response: undefined,
+      };
+      return updated;
+    });
+
+    const chatRequest: ChatRequestModel = {
+      input: newMessage,
+      previousConversations: conversations
+        .slice(0, -1)
+        .map(({ message, response }) => ({
+          message,
+          response,
+        })),
+    };
+
+    try {
+      const stream = connection.stream("StreamChat", chatRequest);
+
+      subscriptionRef.current = stream.subscribe({
+        next: (chunk: string) => {
+          setConversations((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            updated[updated.length - 1] = {
+              ...last,
+              response: (last.response ?? "") + chunk,
+            };
+
+            return updated;
+          });
+        },
+        complete: () => {
+          setIsBusy(false);
+        },
+        error: (err) => {
+          console.error("Stream error:", err);
+          setError("An error occurred while generating the response.");
+          setIsBusy(false);
+        },
+      });
+    } catch (error) {
+      console.error("Error sending message: ", error);
+      setError("An error occurred while generating the response.");
       setIsBusy(false);
     }
   };
@@ -40,7 +109,9 @@ const ChatPage: React.FC = () => {
     setIsBusy(true);
     setError(null);
 
+    const newId = uuidv4();
     const newConversation: ConversationModel = {
+      id: newId,
       message,
       response: undefined,
     };
@@ -50,7 +121,10 @@ const ChatPage: React.FC = () => {
 
     const chatRequest: ChatRequestModel = {
       input: message,
-      previousConversations: conversations,
+      previousConversations: conversations.map(({ message, response }) => ({
+        message,
+        response,
+      })),
     };
 
     try {
@@ -110,6 +184,7 @@ const ChatPage: React.FC = () => {
 
       if (
         event.key === "Enter" &&
+        !isEditingMessageRef.current &&
         document.activeElement !== textareaRef.current
       ) {
         event.preventDefault();
@@ -168,9 +243,11 @@ const ChatPage: React.FC = () => {
             {!isEmpty && (
               <Conversations
                 conversations={conversations}
+                isEditingMessageRef={isEditingMessageRef}
                 bottomRef={bottomRef}
                 isBusy={isBusy}
                 error={error}
+                onSave={(id, newMessage) => handleSaveEdit(id, newMessage)}
               />
             )}
           </div>

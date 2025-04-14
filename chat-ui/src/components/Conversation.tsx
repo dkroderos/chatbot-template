@@ -1,22 +1,33 @@
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Pencil } from "lucide-react";
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { ConversationModel } from "../models";
+import EditMessage from "./EditMessage";
 
 interface Props {
-  conversation: ConversationModel;
-  isLastIndex: boolean;
   screenHeight: number;
+  conversation: ConversationModel;
+  isEditingMessageRef: React.RefObject<boolean>;
+  isEditing: boolean;
+  isLastIndex: boolean;
   isBusy: boolean;
   error: string | null;
+  onPencilClick: () => void;
+  cancelEdit: () => void;
+  saveEdit: (id: string, newMessage: string) => void;
 }
 
 const Conversation: React.FC<Props> = ({
-  conversation,
-  isLastIndex,
   screenHeight,
+  conversation,
+  isEditingMessageRef,
+  isEditing,
+  isLastIndex,
   isBusy,
   error,
+  onPencilClick,
+  cancelEdit,
+  saveEdit,
 }) => {
   const [isCopyingMessage, setIsCopyingMessage] = useState<boolean>(false);
   const [isCopyingResponse, setIsCopyingResponse] = useState<boolean>(false);
@@ -57,28 +68,48 @@ const Conversation: React.FC<Props> = ({
 
   return (
     <>
-      <div className="group">
-        <div className="flex justify-end">
-          <div className="whitespace-pre-wrap px-5 py-3 rounded-2xl bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white max-w-[80%] break-words">
-            {conversation.message}
+      {isEditing ? (
+        <>
+          <EditMessage
+            message={conversation.message}
+            isBusy={isBusy}
+            onCancel={cancelEdit}
+            onSave={(newMessage) => saveEdit(conversation.id, newMessage)}
+          />
+        </>
+      ) : (
+        <>
+          <div className="group">
+            <div className="flex justify-end">
+              <div className="whitespace-pre-wrap px-5 py-3 rounded-2xl bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white max-w-[80%] break-words">
+                {conversation.message}
+              </div>
+            </div>
+
+            <div className="flex justify-end my-4 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+              <div title="Copy message">
+                {isCopyingMessage ? (
+                  <Check className="h-4 w-4 text-neutral-500 dark:text-neutral-200" />
+                ) : (
+                  <Copy
+                    className="h-4 w-4 text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
+                    onClick={() => handleCopyMessage()}
+                  />
+                )}
+              </div>
+
+              <div title="Edit message">
+                {!isEditingMessageRef.current && (
+                  <Pencil
+                    className="ml-2 h-4 w-4 text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
+                    onClick={onPencilClick}
+                  />
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-        <div
-          className={`flex justify-end my-4 transition-opacity duration-300 ${
-            isCopyingMessage ? "opacity-100" : "opacity-0"
-          } group-hover:opacity-100`}
-          title="Copy message"
-        >
-          {isCopyingMessage ? (
-            <Check className="h-4 w-4 text-neutral-500 dark:text-neutral-200" />
-          ) : (
-            <Copy
-              className="h-4 w-4 text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
-              onClick={() => handleCopyMessage()}
-            />
-          )}
-        </div>
-      </div>
+        </>
+      )}
 
       <div
         className="flex justify-start group"
@@ -104,19 +135,21 @@ const Conversation: React.FC<Props> = ({
           )}
 
           {(!isLastIndex || (isLastIndex && !isBusy)) && (
-            <div
-              className="mt-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-              title="Copy response"
-            >
-              {isCopyingResponse ? (
-                <Check className="h-4 w-4 text-neutral-500 dark:text-neutral-200" />
-              ) : (
-                <Copy
-                  className="h-4 w-4 text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
-                  onClick={handleCopyResponse}
-                />
-              )}
-            </div>
+            <>
+              <div
+                className="mt-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                title="Copy response"
+              >
+                {isCopyingResponse ? (
+                  <Check className="h-4 w-4 text-neutral-500 dark:text-neutral-200" />
+                ) : (
+                  <Copy
+                    className="h-4 w-4 text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
+                    onClick={handleCopyResponse}
+                  />
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
