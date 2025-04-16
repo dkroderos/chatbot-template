@@ -1,16 +1,16 @@
-import { MessageSquareOff, Save } from "lucide-react";
+import { PencilOff, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface Props {
   message: string;
-  isBusy: boolean;
+  isSaveEnabled: boolean;
   onCancel: () => void;
   onSave: (newMessage: string) => void;
 }
 
-const EditMessage: React.FC<Props> = ({
+const EditableMessage: React.FC<Props> = ({
   message,
-  isBusy,
+  isSaveEnabled,
   onCancel,
   onSave,
 }) => {
@@ -46,7 +46,6 @@ const EditMessage: React.FC<Props> = ({
           <div className="flex flex-col gap-2 rounded-xl border border-neutral-700 bg-neutral-100 dark:bg-neutral-900 p-3">
             <textarea
               ref={editMessageTextareaRef}
-              disabled={false}
               rows={1}
               className="w-full resize-none bg-transparent text-black dark:text-white focus:outline-none"
               style={{
@@ -66,15 +65,12 @@ const EditMessage: React.FC<Props> = ({
                 className="rounded-full hover:bg-neutral-300 dark:hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
                 title="Cancel"
               >
-                <MessageSquareOff
-                  size={20}
-                  className="text-black dark:text-white"
-                />
+                <PencilOff size={20} className="text-black dark:text-white" />
               </button>
               <button
                 type="button"
                 onClick={() => onSave(newMessage.trim())}
-                disabled={isBusy || !newMessage.trim()}
+                disabled={!isSaveEnabled || !newMessage.trim()}
                 className="rounded-full hover:bg-neutral-300 dark:hover:bg-neutral-800 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 title="Save"
               >
@@ -88,4 +84,4 @@ const EditMessage: React.FC<Props> = ({
   );
 };
 
-export default EditMessage;
+export default EditableMessage;

@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from "react";
 
 interface Props {
-  isBusy: boolean;
+  isConfirmDisabled: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
 
 const ClearConversations: React.FC<Props> = ({
-  isBusy,
+  isConfirmDisabled,
   onClose,
   onConfirm,
 }) => {
@@ -30,7 +30,10 @@ const ClearConversations: React.FC<Props> = ({
           break;
         case "Enter":
           if (document.activeElement === noButtonRef.current) onClose();
-          else if (document.activeElement === yesButtonRef.current && !isBusy)
+          else if (
+            document.activeElement === yesButtonRef.current &&
+            !isConfirmDisabled
+          )
             onConfirm();
           break;
       }
@@ -42,7 +45,7 @@ const ClearConversations: React.FC<Props> = ({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isBusy, onClose, onConfirm]);
+  }, [isConfirmDisabled, onClose, onConfirm]);
 
   return (
     <div
@@ -66,7 +69,12 @@ const ClearConversations: React.FC<Props> = ({
           <button
             ref={yesButtonRef}
             onClick={onConfirm}
-            className="px-4 py-2 bg-neutral-300 dark:bg-neutral-700 text-black dark:text-white rounded transition-colors duration-200 hover:outline hover:outline-2 hover:outline-black dark:hover:outline-white"
+            disabled={isConfirmDisabled}
+            className={`px-4 py-2 rounded transition-colors duration-200 ${
+              isConfirmDisabled
+                ? "bg-neutral-200 dark:bg-neutral-800 text-black/40 dark:text-white/40 cursor-not-allowed"
+                : "bg-neutral-300 dark:bg-neutral-700 text-black dark:text-white hover:outline hover:outline-2 hover:outline-black dark:hover:outline-white"
+            }`}
           >
             Yes
           </button>

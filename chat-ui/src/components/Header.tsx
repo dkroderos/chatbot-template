@@ -1,14 +1,31 @@
 import { Moon, Sun, Trash } from "lucide-react";
+import { useEffect } from "react";
+import useTheme from "../hooks/useTheme";
 
 interface Props {
-  isDarkMode: boolean;
-  toggleTheme: () => void;
   onTrashClick: () => void;
 }
 
-const Header: React.FC<Props> = ({ isDarkMode, toggleTheme, onTrashClick }) => {
+const Header: React.FC<Props> = ({ onTrashClick }) => {
+  const { isDarkMode, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "l") {
+        event.preventDefault();
+        toggleTheme();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [toggleTheme]);
+
   return (
-    <header className="fixed top-0 z-10 flex items-center justify-between px-2 py-2 bg-background text-black dark:text-white w-full">
+    <header className="fixed top-0 z-10 flex items-center justify-between px-2 py-2 bg-transparent text-black dark:text-white w-full">
       <div className="flex items-center space-x-2">
         <button
           onClick={toggleTheme}
