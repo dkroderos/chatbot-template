@@ -50,7 +50,7 @@ Copy-Item .env.example .env # On Windows
 docker compose up -d --build
 ```
 
-- The website is available at http://localhost:37006
+- The website is available at http://localhost:37006.
 
 ### 📦 Environment Variables
 
