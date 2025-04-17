@@ -66,7 +66,6 @@ USE_MOCK_CHAT_HUB=true
 RESPONSE_DELAY=10
 ```
 
-
 - Don't forget to restart the container when you changing the environment variables.
 
 ```sh
