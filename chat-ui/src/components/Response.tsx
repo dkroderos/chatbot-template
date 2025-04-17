@@ -35,7 +35,7 @@ const Response: React.FC<Props> = ({ response, error, showCopyButton }) => {
           {response ? (
             <ReactMarkdown>{response}</ReactMarkdown>
           ) : !error ? (
-            <div className="flex justify-center items-center mx-1">
+            <div className="flex items-center mx-1">
               <div className="w-4 h-4 rounded-full bg-black dark:bg-white animate-expand-contract" />
             </div>
           ) : null}
