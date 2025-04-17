@@ -24,11 +24,13 @@ const ChatPage: React.FC = () => {
   const shouldScrollDownRef = useRef<boolean>(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const isEmpty = conversations.length === 0;
+
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === "l") {
         event.preventDefault();
-        if (!isBusy) setIsModalOpen((prev) => !prev);
+        if (!isBusy && !isEmpty) setIsModalOpen((prev) => !prev);
       }
 
       if (
@@ -54,19 +56,23 @@ const ChatPage: React.FC = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyPress);
     };
-  }, [isBusy, editingConversationId]);
+  }, [isBusy, editingConversationId, isEmpty]);
 
   return (
     <>
       <div className="flex flex-col h-screen">
         <Header
+          isTrashDisabled={isEmpty}
           onTrashClick={() => {
             if (!isBusy) setIsModalOpen((prev) => !prev);
           }}
         />
 
-        {conversations.length === 0 ? (
+        {isEmpty ? (
           <div className="w-full h-screen flex flex-col items-center justify-center">
+            <div className="text-3xl font-bold mb-2 text-neutral-700 dark:text-neutral-300">
+              Chatbot Template
+            </div>
             <ChatInput
               isBusy={isBusy}
               textareaRef={textareaRef}
@@ -90,6 +96,17 @@ const ChatPage: React.FC = () => {
                 rel="noopener noreferrer"
               >
                 Unlicense
+              </a>
+              .
+              <br />
+              Source available on{" "}
+              <a
+                href="https://github.com/dkroderos/chatbot-template"
+                className="underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub
               </a>
               .
             </div>

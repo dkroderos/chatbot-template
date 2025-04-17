@@ -3,10 +3,11 @@ import { useEffect } from "react";
 import useTheme from "../hooks/useTheme";
 
 interface Props {
+  isTrashDisabled: boolean;
   onTrashClick: () => void;
 }
 
-const Header: React.FC<Props> = ({ onTrashClick }) => {
+const Header: React.FC<Props> = ({ isTrashDisabled, onTrashClick }) => {
   const { isDarkMode, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -41,7 +42,12 @@ const Header: React.FC<Props> = ({ onTrashClick }) => {
 
         <button
           onClick={onTrashClick}
-          className="px-4 py-2 rounded bg-white dark:bg-black text-black dark:text-white flex items-center outline outline-2 outline-black/20 dark:outline-white/20 hover:outline-black dark:hover:outline-white focus:outline-black dark:focus:outline-white"
+          disabled={isTrashDisabled}
+          className={`px-4 py-2 rounded bg-white dark:bg-black text-black dark:text-white flex items-center outline outline-2 outline-black/20 dark:outline-white/20 ${
+            isTrashDisabled
+              ? "opacity-40 cursor-not-allowed"
+              : "hover:outline-black dark:hover:outline-white focus:outline-black dark:focus:outline-white"
+          }`}
           title="Clear conversations (Ctrl + L)"
         >
           <Trash className="h-[1.2rem] w-[1.2rem]" />

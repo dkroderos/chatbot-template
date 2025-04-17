@@ -33,8 +33,10 @@ const ClearConversations: React.FC<Props> = ({
           else if (
             document.activeElement === yesButtonRef.current &&
             !isConfirmDisabled
-          )
+          ) {
+            e.preventDefault();
             onConfirm();
+          }
           break;
       }
     };
