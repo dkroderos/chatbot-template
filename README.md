@@ -76,7 +76,7 @@ docker compose up -d --build
 
 ### Customizing AI Behavior
 
-- The API reads all `.txt` files from the SystemMessages directory, treating each one as a single system message. Simply create a `.txt` file and define how you want the AI to behave.
+- The API reads all `.txt` files from the `SystemMessages` directory, treating each one as a single system message. Simply create a `.txt` file and define how you want the AI to behave.
 
 ### 📄 License
 
