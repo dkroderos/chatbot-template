@@ -8,6 +8,8 @@ A simple chatbot template built with TypeScript, C#, React, ASP.NET Core, and Si
 
 ### ✨ Features
 
+- **Customizable AI Behavior**
+- **Remembers previous conversations**
 - **Responsive UI.**
 - **Light theme and Dark Theme.**
 - **Copying messages and responses.**
@@ -64,12 +66,17 @@ USE_MOCK_CHAT_HUB=true
 RESPONSE_DELAY=10
 ```
 
+
 - Don't forget to restart the container when you changing the environment variables.
 
 ```sh
 docker compose down
 docker compose up -d --build
 ```
+
+### Customizing AI Behavior
+
+- The API reads all `.txt` files from the SystemMessages directory, treating each one as a single system message. Simply create a `.txt` file and define how you want the AI to behave.
 
 ### 📄 License
 
