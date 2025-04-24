@@ -72,9 +72,10 @@ const Conversations: React.FC<Props> = ({
                       message={conversation.message}
                       isSaveEnabled={!isBusy}
                       onCancel={() => setEditingConversationId(null)}
-                      onSave={(newMessage) =>
-                        onSave(conversation.id, newMessage)
-                      }
+                      onSave={(newMessage) => {
+                        setEditingConversationId(null);
+                        onSave(conversation.id, newMessage);
+                      }}
                     />
                   </>
                 ) : (
