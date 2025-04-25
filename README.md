@@ -8,12 +8,12 @@ A simple chatbot template built with TypeScript, C#, React, ASP.NET Core, and Si
 
 ### ✨ Features
 
-- **Customizable AI Behavior**
-- **Remembers previous conversations**
+- **Customizable AI Behavior.**
+- **Remembers previous conversations.**
 - **Responsive UI.**
 - **Light theme and Dark Theme.**
 - **Copying messages and responses.**
-- **Keyboard shortcuts support**
+- **Keyboard shortcuts support.**
 - **Editable messages.**
 
 ### 📋 Requirements
