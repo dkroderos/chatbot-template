@@ -1,11 +1,11 @@
 services:
-  main:
+  chat-main:
     image: nginx:latest
-    container_name: main
+    container_name: chat-main
     depends_on:
-      ui:
+      chat-ui:
         condition: service_started
-      api:
+      chat-api:
         condition: service_started
     ports:
       - "37006:80"
@@ -14,8 +14,8 @@ services:
     networks:
       - chat
 
-  api:
-    container_name: api
+  chat-api:
+    container_name: chat-api
     build:
       context: .
       dockerfile: ./Chat.Api/Dockerfile
@@ -30,8 +30,8 @@ services:
     networks:
       - chat
 
-  ui:
-    container_name: ui
+  chat-ui:
+    container_name: chat-ui
     build:
       context: ./chat-ui
       dockerfile: Dockerfile
