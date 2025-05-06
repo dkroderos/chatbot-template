@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-main
+  namespace: chat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-main
+  template:
+    metadata:
+      labels:
+        app: chat-main
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-main
+  namespace: chat
+spec:
+  type: NodePort
+  selector:
+    app: chat-main
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 37006

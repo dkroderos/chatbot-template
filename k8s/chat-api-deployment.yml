@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-api
+  namespace: chat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-api
+  template:
+    metadata:
+      labels:
+        app: chat-api
+    spec:
+      containers:
+        - name: chat-api
+          image: chat-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "8080"
+            - name: AppOptions__OpenAIApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: openai-secrets
+                  key: OPEN_AI_API_KEY
+            - name: AppOptions__MaxPreviousConversations
+              value: "20"
+            - name: AppOptions__UseMockChatHub
+              value: "false"
+            - name: AppOptions__ResponseDelay
+              value: "0"
+          volumeMounts:
+            - name: system-messages
+              mountPath: /app/SystemMessages
+      volumes:
+        - name: system-messages
+          hostPath:
+            path: /full/path/to/SystemMessages
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-api
+  namespace: chat
+spec:
+  selector:
+    app: chat-api
+  ports:
+    - port: 8080
+      targetPort: 8080
